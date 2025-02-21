@@ -1,0 +1,14 @@
+{
+  "name": "aws-shop-backend",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "product_service",
+    "shared"
+  ],
+  "scripts": {
+    "deploy:product": "cd product_service && cdk deploy",
+    "test:product": "cd product_service && pytest",
+    "deploy:all": "npm run deploy:product"
+  }
+}

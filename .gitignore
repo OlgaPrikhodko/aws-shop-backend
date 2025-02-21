@@ -1,0 +1,11 @@
+# .gitignore
+.DS_Store
+node_modules/
+**/cdk.out/
+**/.env
+**/__pycache__/
+**/.pytest_cache/
+**/.venv/
+**/*.pyc
+.idea/
+.vscode/
