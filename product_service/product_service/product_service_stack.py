@@ -3,8 +3,10 @@ from aws_cdk import (
 )
 from constructs import Construct
 
-from product_service.get_products import GetProducts
 from product_service.api_gateway import ApiGateway
+
+from product_service.get_products import GetProducts
+from product_service.get_product_by_id import GetProductById
 
 
 class ProductServiceStack(Stack):
@@ -40,5 +42,10 @@ class ProductServiceStack(Stack):
         # This function will handle the GET '/products' endpoint
         get_products_fn = GetProducts(self, 'ProductList')
 
+        # Create Lambda function for getting a product by ID
+        # This function will handle the GET '/products/{id}' endpoint
+        get_product_by_id_fn = GetProductById(self, 'ProductById')
+
         ApiGateway(self, "APIGateway",
-                   get_products_fn=get_products_fn.get_product_list)
+                   get_products_fn=get_products_fn.get_product_list,
+                   get_product_by_id_fn=get_product_by_id_fn.get_product_by_id)

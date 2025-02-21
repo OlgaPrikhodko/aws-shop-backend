@@ -19,6 +19,7 @@ class ApiGateway(Stack):
             self,
             scope: Construct, constructor_id: str,
             get_products_fn: lambda_.Function,
+            get_product_by_id_fn: lambda_.Function,
             **kwargs
     ) -> None:
         """
@@ -45,4 +46,13 @@ class ApiGateway(Stack):
         products_resource.add_method(
             "GET", apigateway.LambdaIntegration(
                 get_products_fn)
+        )
+
+        # Add '/products/{id}' resource to the API
+        product_resource = products_resource.add_resource("{id}")
+
+        # Configure GET method for '/products/{id}' endpoint with Lambda integration
+        product_resource.add_method(
+            "GET", apigateway.LambdaIntegration(
+                get_product_by_id_fn)
         )
