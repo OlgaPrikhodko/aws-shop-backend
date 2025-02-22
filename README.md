@@ -1,12 +1,37 @@
 # AWS Shop Backend
 
-Microservices backend for the AWS shop application.
+A microservices-based backend implementation for an AWS shop application, built with serverless architecture.
 
-Frontend - [Repository](https://github.com/OlgaPrikhodko/nodejs-aws-shop-react)
+## Overview
 
-## Services
+This project implements a serverless e-commerce backend using AWS services including Lambda, API Gateway, and more. The frontend repository can be found [here](https://github.com/OlgaPrikhodko/nodejs-aws-shop-react).
 
-Working tree should look somehow like this:
+## Architecture
+
+The application is built using a microservices architecture with the following components:
+
+### Services
+
+- **Product Service**: Manages product catalog (Lambda + API Gateway)
+<!-- - **Authorization Service**: Handles user authentication and authorization
+- **Import Service**: Manages product import operations
+- **Cart Service**: Handles shopping cart operations -->
+
+## API Endpoints
+
+### Product Service
+Base URL: https://6krhhlmu2l.execute-api.eu-west-1.amazonaws.com/prod
+
+Available endpoints:
+- GET `/products` - Retrieve all products
+- GET `/products/{id}` - Retrieve specific product by ID
+
+## Frontend Shop App Link:
+
+[https://d2qer9nz6tkkfj.cloudfront.net/](https://d2qer9nz6tkkfj.cloudfront.net/)
+
+## Project Structure
+
 ```
 .
 ├── backend
@@ -18,24 +43,27 @@ Working tree should look somehow like this:
 └── frontend                    # frontend repo
 ```
 
-### Product Service
 
-- Manages product catalog
-- API Gateway + Lambda implementation
+## Technical Stack
+
+- **Runtime**: Python 3.9+
+- **Infrastructure**: AWS CDK
+- **Services**:
+  - AWS Lambda
+  - API Gateway
 
 ## Development
 
 ### Prerequisites
 
-- Python 3.9+
-- AWS CDK
-- AWS CLI
+1. AWS CLI installed and configured
+2. AWS CDK installed
+3. Python 3.9 or higher
 
-## Service Structure
+### Deployment
 
-Each service is a separate CDK application with its own:
-
-- Infrastructure as Code
-- Business Logic
-- Tests
-- Documentation
+Each service contains its own:
+- Infrastructure as Code (IaC)
+- Business logic implementation
+- Test suites
+- Service-specific documentation
