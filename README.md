@@ -44,6 +44,26 @@ Available endpoints:
 ```
 
 
+### Schemas for products and stocks databases (DynamoDB):
+
+Product model:
+
+```
+  products:
+    id -  uuid (Primary key)
+    title - text, not null
+    description - text
+    price - integer
+```
+
+Stock model:
+
+```
+  stocks:
+    product_id - uuid (Foreign key from products.id)
+    count - integer (Total number of products in stock, can't be exceeded)
+```
+
 ## Technical Stack
 
 - **Runtime**: Python 3.9+
@@ -51,6 +71,7 @@ Available endpoints:
 - **Services**:
   - AWS Lambda
   - API Gateway
+  - Amazon DynamoDB
 
 ## Development
 
