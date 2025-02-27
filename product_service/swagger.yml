@@ -1,0 +1,84 @@
+openapi: 3.0.0
+info:
+  title: Product Service API
+  description: API for managing plant products
+  version: 1.0.0
+servers:
+  - url: https://6krhhlmu2l.execute-api.eu-west-1.amazonaws.com/prod
+    description: AWS API Gateway
+paths:
+  /products:
+    get:
+      summary: Get list of products
+      description: Retrieves a list of all available products
+      operationId: getProducts
+      responses:
+        "200":
+          description: A list of products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Product"
+              example:
+                - id: "1"
+                  title: "Citrus"
+                  price: 5.99
+                - id: "2"
+                  title: "Palm"
+                  price: 10.99
+
+  /products/{id}:
+    get:
+      summary: Get product by ID
+      description: Retrieves a specific product by its ID
+      operationId: getProductById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID of the product to retrieve
+          schema:
+            type: string
+      responses:
+        "200":
+          description: A single product
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+              example:
+                id: "1"
+                title: "Citrus"
+                price: 5.99
+        "404":
+          description: Product not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Product not found"
+
+components:
+  schemas:
+    Product:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the product
+        title:
+          type: string
+          description: Name of the product
+        price:
+          type: number
+          format: float
+          description: Price of the product
+      required:
+        - id
+        - title
+        - price
