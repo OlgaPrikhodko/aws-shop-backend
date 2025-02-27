@@ -14,16 +14,17 @@ class GetProductById(Stack):
             handles product by id retrieval.
     """
 
-    def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
+    def __init__(self, scope: Construct, construct_id: str, environment: dict) -> None:
         """
         Initialize GetProductById stack.
 
         Args:
             scope: CDK app construct scope
             construct_id: Unique identifier for the stack
-            **kwargs: Additional arguments passed to Stack
+            environment: Environment variables for the Lambda function
+
         """
-        super().__init__(scope, construct_id, **kwargs)
+        super().__init__(scope, construct_id)
 
         # Define an AWS Lambda resource
         self.get_product_by_id = lambda_.Function(
@@ -31,5 +32,6 @@ class GetProductById(Stack):
             "GetProductByIdHandler",
             runtime=lambda_.Runtime.PYTHON_3_12,
             handler="product_by_id.handler",
-            code=lambda_.Code.from_asset("product_service/lambda_func/")
+            code=lambda_.Code.from_asset("product_service/lambda_func/"),
+            environment=environment
         )
