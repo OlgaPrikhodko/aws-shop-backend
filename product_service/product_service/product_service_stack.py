@@ -7,51 +7,81 @@ from constructs import Construct
 from product_service.api_gateway import ApiGateway
 from product_service.get_products import GetProducts
 from product_service.get_product_by_id import GetProductById
+from product_service.create_product import CreateProduct
 
 
 class ProductServiceStack(Stack):
     """
-    ProductServiceStack - A serverless stack for managing product-related operations
+    ProductServiceStack - A serverless stack for managing product-related operations in AWS
 
+    This stack creates a serverless architecture for managing products and their stock information
+    using AWS services including DynamoDB, Lambda, and API Gateway.
 
     Components:
-    - DynamoDB Tables:
-    - products: Stores product information
-    - stock: Stores stock information for products
+    -----------
+    DynamoDB Tables:
+        - products: Stores product information including id, title, description, and price
+        - stock: Stores stock information for products including id and count
 
-    - Lambda Functions:
-    - GetProducts: Retrieves list of all products
-    - GetProductById: Retrieves a specific product by ID
+    Lambda Functions:
+        - GetProducts: Retrieves list of all products with their stock information
+        - GetProductById: Retrieves a specific product by ID with its stock information
+        - CreateProduct: Creates a new product with its initial stock information
 
-    - API Gateway endpoints:
-    - GET / products: Returns all products
-    - GET / products/{id}: Returns specific product by ID
+    API Gateway endpoints:
+        - GET /products: Returns all products with their stock information
+        - GET /products/{id}: Returns specific product by ID
+        - POST /products: Creates a new product
 
     Environment Variables:
-    - PRODUCTS_TABLE_NAME: Name of the products DynamoDB table
-    - STOCK_TABLE_NAME: Name of the stock DynamoDB table
+        - PRODUCTS_TABLE_NAME: Name of the products DynamoDB table
+        - STOCK_TABLE_NAME: Name of the stock DynamoDB table
 
     Permissions:
-    - Lambda functions have read access to both products and stock tables
-
+        - GetProducts Lambda: Read/Write access to both products and stock tables
+        - GetProductById Lambda: Read/Write access to both products and stock tables
+        - CreateProduct Lambda: Read/Write access to both products and stock tables
 
     Example Usage:
+    -------------
+    Deployment:
+        cdk deploy ProductServiceStack
 
-    # To deploy the stack:
-    cdk deploy ProductServiceStack
+    API Endpoints Usage:
+        GET /products
+            Returns: List of all products with their stock information
 
-    # API Endpoints:
-    GET /products - Returns all products with their stock information
-    GET /products/{id} - Returns a specific product with its stock information
+        GET /products/{id}
+            Parameters: id (string) - The unique identifier of the product
+            Returns: Single product with its stock information
+
+        POST /products
+            Body: {
+                "title": "string",
+                "description": "string",
+                "price": number,
+                "count": number
+            }
+            Returns: Created product information
 
     Response Format:
-    {
-        "id": "string",
-        "title": "string",
-        "description": "string",
-        "price": number,
-        "count": number
-    }
+        {
+            "id": "string",        # Unique identifier of the product
+            "title": "string",     # Name/title of the product
+            "description": "string", # Detailed description of the product
+            "price": number,       # Price of the product
+            "count": number        # Current stock count
+        }
+
+    Error Handling:
+        - Returns 404 if product is not found
+        - Returns 400 for invalid input
+        - Returns 500 for server errors
+
+    Dependencies:
+        - aws_cdk.aws_dynamodb
+        - aws_cdk.aws_lambda
+        - aws_cdk.aws_apigateway
     """
 
     def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
@@ -95,15 +125,26 @@ class ProductServiceStack(Stack):
         get_product_by_id_fn = GetProductById(
             self, 'ProductById', environment=environment)
 
-        # Grant read permissions to Lambda functions
+        # Create Lambda function for creating a new product
+        # This function will handle the POST '/products' endpoint
+        create_product_fn = CreateProduct(
+            self, 'CreateProduct', environment=environment)
+
         # Give read permissions to both Lambda functions for the products table
-        products_table.grant_read_data(get_products_fn.get_product_list)
-        products_table.grant_read_data(get_product_by_id_fn.get_product_by_id)
+        products_table.grant_read_write_data(get_products_fn.get_product_list)
+        products_table.grant_read_write_data(
+            get_product_by_id_fn.get_product_by_id)
 
         # Give read permissions to both Lambda functions for the stock table
-        stock_table.grant_read_data(get_products_fn.get_product_list)
-        stock_table.grant_read_data(get_product_by_id_fn.get_product_by_id)
+        stock_table.grant_read_write_data(get_products_fn.get_product_list)
+        stock_table.grant_read_write_data(
+            get_product_by_id_fn.get_product_by_id)
+
+        # Give write permissions to the create_product_fn for both tables
+        products_table.grant_read_write_data(create_product_fn.create_product)
+        stock_table.grant_read_write_data(create_product_fn.create_product)
 
         ApiGateway(self, "APIGateway",
                    get_products_fn=get_products_fn.get_product_list,
-                   get_product_by_id_fn=get_product_by_id_fn.get_product_by_id)
+                   get_product_by_id_fn=get_product_by_id_fn.get_product_by_id,
+                   create_product_fn=create_product_fn.create_product)
