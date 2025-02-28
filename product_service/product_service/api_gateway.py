@@ -20,6 +20,7 @@ class ApiGateway(Stack):
             scope: Construct, constructor_id: str,
             get_products_fn: lambda_.Function,
             get_product_by_id_fn: lambda_.Function,
+            create_product_fn: lambda_.Function,
             **kwargs
     ) -> None:
         """
@@ -29,6 +30,8 @@ class ApiGateway(Stack):
             scope (Construct): The scope in which to define this construct.
             constructor_id (str): The ID of the construct.
             get_products_fn (_lambda): Lambda function for getting products list.
+            get_product_by_id_fn (_lambda): Lambda function for getting product by id
+            create_product_fn (_lambda): Lambda function for creating product
             **kwargs: Additional keyword arguments to pass to the parent Stack.
         """
 
@@ -55,4 +58,10 @@ class ApiGateway(Stack):
         product_resource.add_method(
             "GET", apigateway.LambdaIntegration(
                 get_product_by_id_fn)
+        )
+
+        # Configure POST method for '/products' endpoint with Lambda integration
+        products_resource.add_method(
+            "POST", apigateway.LambdaIntegration(
+                create_product_fn)
         )
