@@ -25,10 +25,23 @@ Base URL: https://6krhhlmu2l.execute-api.eu-west-1.amazonaws.com/prod
 Available endpoints:
 - GET `/products` - Retrieve all products
 - GET `/products/{id}` - Retrieve specific product by ID
+- POST `/products` - Create new product
 
 ## Frontend Shop App Link:
 
 [https://d2qer9nz6tkkfj.cloudfront.net/](https://d2qer9nz6tkkfj.cloudfront.net/)
+
+Example for creating product:
+```
+curl -X POST https://6krhhlmu2l.execute-api.eu-west-1.amazonaws.com/prod/products \
+-H "Content-Type: application/json" \
+-d '{
+    "title": "New Product",
+    "description": "Product description",
+    "price": 99.99,
+    "count": 100
+}'
+```
 
 ## Project Structure
 
@@ -73,7 +86,6 @@ Stock model:
   - API Gateway
   - Amazon DynamoDB
 
-## Development
 
 ### Prerequisites
 
@@ -88,3 +100,6 @@ Each service contains its own:
 - Business logic implementation
 - Test suites
 - Service-specific documentation
+
+
+
