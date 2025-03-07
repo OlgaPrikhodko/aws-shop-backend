@@ -131,18 +131,18 @@ class ProductServiceStack(Stack):
             self, 'CreateProduct', environment=environment)
 
         # Give read permissions to both Lambda functions for the products table
-        products_table.grant_read_write_data(get_products_fn.get_product_list)
-        products_table.grant_read_write_data(
+        products_table.grant_read_data(get_products_fn.get_product_list)
+        products_table.grant_read_data(
             get_product_by_id_fn.get_product_by_id)
 
         # Give read permissions to both Lambda functions for the stock table
-        stock_table.grant_read_write_data(get_products_fn.get_product_list)
-        stock_table.grant_read_write_data(
+        stock_table.grant_read_data(get_products_fn.get_product_list)
+        stock_table.grant_read_data(
             get_product_by_id_fn.get_product_by_id)
 
         # Give write permissions to the create_product_fn for both tables
-        products_table.grant_read_write_data(create_product_fn.create_product)
-        stock_table.grant_read_write_data(create_product_fn.create_product)
+        products_table.grant_write_data(create_product_fn.create_product)
+        stock_table.grant_write_data(create_product_fn.create_product)
 
         ApiGateway(self, "APIGateway",
                    get_products_fn=get_products_fn.get_product_list,
