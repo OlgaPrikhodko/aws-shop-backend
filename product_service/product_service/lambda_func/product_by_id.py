@@ -3,6 +3,15 @@ import os
 import boto3
 
 
+# Common headers for all responses
+HEADERS = {
+    "Content-Type": "application/json",
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "GET",
+    "Access-Control-Allow-Credentials": True,
+}
+
+
 def handler(event, _context):
     """
     Lambda handler for GET /products/{productId} endpoint.
@@ -12,19 +21,10 @@ def handler(event, _context):
     print("GET /products/{{productId}} request received")
     print(f"Event pathParameters: {json.dumps(event.get('pathParameters'))}")
 
-    try:
-        if not event.get('pathParameters') or 'id' not in event['pathParameters']:
-            return {
-                "statusCode": 400,
-                "headers": {
-                    "Access-Control-Allow-Origin": "*",
-                    "Access-Control-Allow-Methods": "GET",
-                    "Access-Control-Allow-Credentials": True,
-                    "Content-Type": "application/json",
-                },
-                "body": json.dumps({"message": "Product ID is required"}),
-            }
+    if not event.get('pathParameters') or 'id' not in event['pathParameters']:
+        return error_response(400, "Product ID is required")
 
+    try:
         # Extract the product ID from the path parameters
         product_id = event["pathParameters"]["id"]
         print(f"Searching for product with ID: {product_id}")
@@ -32,46 +32,22 @@ def handler(event, _context):
         # Find the product with the specified ID
         product = get_product_by_id(product_id)
 
-        if product:
-            print(f"Successfully retrieved product: {json.dumps(product)}")
+        if not product:
+            # return 404 if product was not found
+            print(f"Product with ID {product_id} not found")
+            return error_response(404, "Product not found")
 
-            return {
-                "statusCode": 200,
-                "headers": {
-                    "Access-Control-Allow-Origin": "*",
-                    "Access-Control-Allow-Methods": "GET",
-                    "Access-Control-Allow-Credentials": True,
-                    "Content-Type": "application/json",
-                },
-                "body": json.dumps(product),
-            }
-
-        # return 404 if product was not found
-        print(f"Product with ID {product_id} not found")
+        print(f"Successfully retrieved product: {json.dumps(product)}")
 
         return {
-            "statusCode": 404,
-            "headers": {
-                "Access-Control-Allow-Origin": "*",
-                "Access-Control-Allow-Methods": "GET",
-                "Access-Control-Allow-Credentials": True,
-                "Content-Type": "application/json",
-            },
-            "body": json.dumps({"message": "Product not found"}),
+            "statusCode": 200,
+            "headers": HEADERS,
+            "body": json.dumps(product),
         }
+
     except Exception as e:
         print(f"Error: An unexpected error occurred: {str(e)}")
-
-        return {
-            "statusCode": 500,
-            "headers": {
-                "Access-Control-Allow-Origin": "*",
-                "Access-Control-Allow-Methods": "GET",
-                "Access-Control-Allow-Credentials": True,
-                "Content-Type": "application/json",
-            },
-            "body": json.dumps({"message": "Internal Server Error"}),
-        }
+        return error_response(500, "Internal Server Error")
 
 
 def get_product_by_id(product_id: str):
@@ -102,3 +78,15 @@ def get_product_by_id(product_id: str):
     product['price'] = float(product['price'])
 
     return product
+
+
+def error_response(status_code: int, message: str):
+    """
+    Helper function to create error responses.
+    """
+
+    return {
+        "statusCode": status_code,
+        "headers": HEADERS,
+        "body": json.dumps({"message": message}),
+    }
