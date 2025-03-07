@@ -29,6 +29,74 @@ paths:
                   title: "Palm"
                   price: 10.99
 
+    post:
+      summary: Create a new product
+      description: Creates a new product with stock information
+      operationId: createProduct
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  description: Name of the product
+                description:
+                  type: string
+                  description: Detailed description of the product
+                price:
+                  type: number
+                  format: float
+                  description: Price of the product
+                count:
+                  type: integer
+                  description: Initial stock quantity
+              required:
+                - title
+                - description
+                - price
+                - count
+            example:
+              title: "333 New Product"
+              description: "Product description"
+              price: 99.99
+              count: 100
+      responses:
+        "201":
+          description: Product successfully created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+              example:
+                id: "3"
+                title: "333 New Product"
+                description: "Product description"
+                price: 99.99
+                count: 100
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Invalid input data"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Internal server error"
+
   /products/{id}:
     get:
       summary: Get product by ID
@@ -74,11 +142,19 @@ components:
         title:
           type: string
           description: Name of the product
+        description:
+          type: string
+          description: Detailed description of the product
         price:
           type: number
           format: float
           description: Price of the product
+        count:
+          type: integer
+          description: Current stock quantity
       required:
         - id
         - title
+        - description
         - price
+        - count
