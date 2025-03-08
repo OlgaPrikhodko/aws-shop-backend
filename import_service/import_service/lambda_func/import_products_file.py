@@ -7,6 +7,9 @@ s3 = boto3.client('s3')
 
 
 def handler(event, _context):
+    """
+    Lambda function handler that generates a presigned URL for S3 file upload.
+    """
     # Get the filename from query parameters
     query_parameters = event.get('queryStringParameters', {})
     if not query_parameters or 'name' not in query_parameters:
@@ -18,8 +21,8 @@ def handler(event, _context):
             'body': json.dumps({'error': 'File name is required'})
         }
 
-    file_name = "products.csv"  # query_parameters['name']
-    bucket_name = "task-5-import-csv-for-shop"  # os.environ['BUCKET_NAME']
+    file_name = query_parameters['name']
+    bucket_name = os.environ['BUCKET_NAME']
     key = f"uploaded/{file_name}"
 
     print(f"bucket name - {bucket_name}")
@@ -31,6 +34,8 @@ def handler(event, _context):
     }
 
     try:
+        # Generate presigned URL for PUT operation
+        # URL will be valid for 1 hour (3600 seconds)
         signed_url = s3.generate_presigned_url(
             'put_object',
             Params=params,
