@@ -1,0 +1,51 @@
+openapi: 3.0.0
+info:
+  title: Import Service API
+  description: API for importing products via CSV files
+  version: 1.0.0
+servers:
+  - url: https://hr83sjmjyj.execute-api.eu-west-1.amazonaws.com/prod
+    description: AWS API Gateway
+paths:
+  /import:
+    get:
+      summary: Get signed URL for file upload
+      description: Generates a signed URL for uploading CSV file with products
+      operationId: importProductsFile
+      parameters:
+        - name: name
+          in: query
+          required: true
+          description: Name of the CSV file to upload
+          schema:
+            type: string
+            example: "products.csv"
+      responses:
+        "200":
+          description: Successfully generated signed URL
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: Signed URL for file upload
+              example: "https://import-service-bucket.s3.eu-west-1.amazonaws.com/uploaded/products.csv?AWSAccessKeyId=..."
+        "400":
+          description: Bad Request - Missing or invalid file name
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "File name is required"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Internal server error"
