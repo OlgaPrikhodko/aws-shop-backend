@@ -8,6 +8,7 @@
   ],
   "scripts": {
     "deploy:product": "cd product_service && cdk deploy --all",
+    "deploy:import": "cd import_service && cdk deploy --all",
     "test:product": "cd product_service && pytest",
     "deploy:all": "npm run deploy:product"
   }
