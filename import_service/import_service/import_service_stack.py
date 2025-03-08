@@ -3,8 +3,9 @@ from aws_cdk import (
 )
 from constructs import Construct
 
-from import_service.import_products_lambda import ImportProductsLambda
 from import_service.api_gateway import ApiGateway
+from import_service.import_products_lambda import ImportProductsLambda
+from import_service.import_file_parser_lambda import FileParserLambda
 
 
 class ImportServiceStack(Stack):
@@ -22,6 +23,13 @@ class ImportServiceStack(Stack):
         import_products_lambda = ImportProductsLambda(
             self,
             'ImportProductsLambda',
+            bucket_name=bucket_name
+        )
+
+        # Initialize FileParserLambda construct that handles parsing of uploaded files in S3
+        FileParserLambda(
+            self,
+            'FileParserLambda',
             bucket_name=bucket_name
         )
 
