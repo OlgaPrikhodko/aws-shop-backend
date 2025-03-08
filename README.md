@@ -27,6 +27,46 @@ Available endpoints:
 - GET `/products/{id}` - Retrieve specific product by ID
 - POST `/products` - Create new product
 
+
+## Import Service
+Base URL: https://hr83sjmjyj.execute-api.eu-west-1.amazonaws.com/prod
+
+### Available Endpoints:
+- GET `/import` - Generate signed URL for CSV file upload
+  - Query Parameters:
+    - `name` (required): Name of the CSV file to upload
+  - Response: Signed URL as string
+  - Example: `/import?name=products.csv`
+
+### Usage Example:
+```
+# Get signed URL for file upload
+curl "https://hr83sjmjyj.execute-api.eu-west-1.amazonaws.com/prod/import?name=products.csv"
+
+```
+
+### CSV File Requirements:
+- Format: CSV file with product data
+- Expected columns:
+  - id
+  - title
+  - description
+  - price
+  - count
+
+### Import Process Flow:
+1. Request signed URL via GET `/import` endpoint
+2. Use received URL to upload CSV file to S3
+3. File will be placed in the 'uploaded' folder
+4. System will process the file and import products
+
+### Technical Details:
+- S3 Bucket Structure:
+  - uploaded/ - Initial upload location for CSV files
+- Lambda Functions:
+  - importProductsFile - Generates signed URLs for file upload
+
+
 ## Frontend Shop App Link:
 
 [https://d2qer9nz6tkkfj.cloudfront.net/](https://d2qer9nz6tkkfj.cloudfront.net/)
