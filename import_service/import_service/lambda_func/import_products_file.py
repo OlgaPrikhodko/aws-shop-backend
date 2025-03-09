@@ -30,7 +30,8 @@ def handler(event, _context):
 
     params = {
         'Bucket': bucket_name,
-        'Key': key
+        'Key': key,
+        "ContentType": "text/csv"
     }
 
     try:
@@ -48,7 +49,8 @@ def handler(event, _context):
             'headers': {
                 'Access-Control-Allow-Origin': '*',
                 'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-                'Access-Control-Allow-Credentials': True
+                'Access-Control-Allow-Credentials': True,
+                'Access-Control-Allow-Headers': '*'
             },
             'body': signed_url
         }
