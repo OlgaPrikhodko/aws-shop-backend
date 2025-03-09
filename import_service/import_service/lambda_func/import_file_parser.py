@@ -46,7 +46,7 @@ def handler(event, _context):
             if key != 'uploaded/':
                 s3.delete_object(Bucket=bucket_name, Key=key)
 
-            print(f"File from '{file_name}' moved to parsed folder.")
+            print(f"File from uploaded moved to parsed folder.")
     except:
         print("Error processing file")
         raise
