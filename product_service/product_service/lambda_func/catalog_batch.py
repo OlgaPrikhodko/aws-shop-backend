@@ -15,60 +15,78 @@ def handler(event, _context):
 
     products_for_sns = []
 
+    # Check if there are any records
+    if not event.get('Records'):
+        return {
+            'statusCode': 200,
+            'body': json.dumps({'message': 'No records to process'}),
+            'headers': {
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Credentials': True,
+                'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+            }
+        }
+
     for record in event['Records']:
-        record = json.loads(record['body'])
+        try:
+            record_data = json.loads(record['body'])
 
-        # Simple validation that are all fields in place
-        required_fields = ['id', 'title', 'description', 'price', 'count']
-        for field in required_fields:
-            if field not in record:
-                return {
-                    'statusCode': 400,
-                    'body': json.dumps({'message': f'Invalid input: {field} is missing'})
-                }
-
-        product_item = {
-            'id': {'S': str(record['id'])},
-            'title': {'S': record['title']},
-            'description': {'S': record['description']},
-            'price': {'N': str(record['price'])}
-        }
-
-        stock_item = {
-            'product_id': {'S': str(record['id'])},
-            'count': {'N': str(record['count'])}
-        }
-
-        sns_product = {
-            'id': str(record['id']),
-            'title': record['title'],
-            'description': record['description'],
-            'price': record['price'],
-            'count': record['count']
-        }
-        products_for_sns.append(sns_product)
-
-        # save to DynamoDB
-        dynamodb_client.transact_write_items(
-            TransactItems=[
-                {
-                    'Put': {
-                        'TableName': product_table_name,
-                        'Item': product_item
+            # Simple validation that are all fields in place
+            required_fields = ['id', 'title', 'description', 'price', 'count']
+            for field in required_fields:
+                if field not in record_data:
+                    return {
+                        'statusCode': 400,
+                        'body': json.dumps({'message': f'Invalid input: {field} is missing'})
                     }
-                },
-                {
-                    'Put': {
-                        'TableName': stock_table_name,
-                        'Item': stock_item
-                    }
-                }
-            ]
-        )
 
+            product_item = {
+                'id': {'S': str(record_data['id'])},
+                'title': {'S': record_data['title']},
+                'description': {'S': record_data['description']},
+                'price': {'N': str(record_data['price'])}
+            }
+
+            stock_item = {
+                'product_id': {'S': str(record_data['id'])},
+                'count': {'N': str(record_data['count'])}
+            }
+
+            # save to DynamoDB
+            dynamodb_client.transact_write_items(
+                TransactItems=[
+                    {
+                        'Put': {
+                            'TableName': product_table_name,
+                            'Item': product_item
+                        }
+                    },
+                    {
+                        'Put': {
+                            'TableName': stock_table_name,
+                            'Item': stock_item
+                        }
+                    }
+                ]
+            )
+
+            products_for_sns.append({
+                'id': str(record_data['id']),
+                'title': record_data['title'],
+                'description': record_data['description'],
+                'price': record_data['price'],
+                'count': record_data['count']
+            })
+
+        except Exception as e:
+            print(f"Error processing record: {str(e)}")
+            continue
+
+    # Send SNS notification after processing all records
+    if products_for_sns:
         sns_message = {
             'default': json.dumps({
-                'message': 'New roduct added',
+                'message': 'New product added',
                 'products': products_for_sns
             })
         }
@@ -81,12 +99,12 @@ def handler(event, _context):
 
         print(f"Message sent to SNS topic: {response['MessageId']}")
 
-        return {
-            'statusCode': 200,
-            'body': json.dumps({'message': 'Products added successfully'}),
-            'headers': {
-                'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Credentials': True,
-                'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-            }
+    return {
+        'statusCode': 200,
+        'body': json.dumps({'message': 'Products added successfully'}),
+        'headers': {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Credentials': True,
+            'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
         }
+    }
