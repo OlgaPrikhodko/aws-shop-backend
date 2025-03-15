@@ -3,8 +3,8 @@ from aws_cdk import (
     aws_lambda as lambda_,
     aws_s3 as s3,
     aws_s3_notifications as s3_notifications,
+    aws_sqs as sqs
 )
-
 from constructs import Construct
 
 
@@ -15,6 +15,7 @@ class FileParserLambda(Stack):
     This stack sets up a Lambda function that processes files from a specified S3 bucket.
     It configures necessary IAM permissions for the Lambda to read, write, and delete objects
     from the bucket.
+import boto3
 
     Attributes:
         import_file_parser (lambda_.Function): Lambda function that handles file parsing
@@ -33,6 +34,13 @@ class FileParserLambda(Stack):
         bucket = s3.Bucket.from_bucket_name(self, 'ImportBucket',
                                             bucket_name=bucket_name)
 
+        queue = sqs.Queue.from_queue_attributes(
+            self,
+            "CatalogItemsQueue",
+            queue_arn="arn:aws:sqs:eu-west-1:288761740770:ProductServiceStackCatalogBatchProcessF03-CatalogItemsQueueB3B6CE23-4hMqPokXval1",
+            queue_url="https://eu-west-1.queue.amazonaws.com/288761740770/ProductServiceStackCatalogBatchProcessF03-CatalogItemsQueueB3B6CE23-4hMqPokXval1"
+        )
+
         # Create Lambda function
         self.import_file_parser = lambda_.Function(
             self,
@@ -40,7 +48,8 @@ class FileParserLambda(Stack):
             runtime=lambda_.Runtime.PYTHON_3_12,
             handler='import_file_parser.handler',
             code=lambda_.Code.from_asset('import_service/lambda_func/'),
-            environment={'BUCKET_NAME': bucket.bucket_name}
+            environment={'BUCKET_NAME': bucket.bucket_name,
+                         "QUEUE_URL": queue.queue_url}
         )
 
         # Grant permissions to the Lambda function:
@@ -55,3 +64,5 @@ class FileParserLambda(Stack):
         bucket.add_event_notification(s3.EventType.OBJECT_CREATED,
                                       notification,
                                       s3.NotificationKeyFilter(prefix='uploaded/'))
+
+        queue.grant_send_messages(self.import_file_parser)
