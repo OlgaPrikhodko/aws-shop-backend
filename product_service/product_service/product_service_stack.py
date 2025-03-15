@@ -8,6 +8,7 @@ from product_service.api_gateway import ApiGateway
 from product_service.get_products import GetProducts
 from product_service.get_product_by_id import GetProductById
 from product_service.create_product import CreateProduct
+from product_service.catalog_batch_process import CatalogBatchProcess
 
 
 class ProductServiceStack(Stack):
@@ -130,6 +131,9 @@ class ProductServiceStack(Stack):
         create_product_fn = CreateProduct(
             self, 'CreateProduct', environment=environment)
 
+        catalog_batch_process_fn = CatalogBatchProcess(
+            self, 'CatalogBatchProcess', environment=environment)
+
         # Give read permissions to both Lambda functions for the products table
         products_table.grant_read_data(get_products_fn.get_product_list)
         products_table.grant_read_data(
@@ -143,6 +147,11 @@ class ProductServiceStack(Stack):
         # Give write permissions to the create_product_fn for both tables
         products_table.grant_write_data(create_product_fn.create_product)
         stock_table.grant_write_data(create_product_fn.create_product)
+
+        products_table.grant_write_data(
+            catalog_batch_process_fn.catalog_batch_process)
+        stock_table.grant_write_data(
+            catalog_batch_process_fn.catalog_batch_process)
 
         ApiGateway(self, "APIGateway",
                    get_products_fn=get_products_fn.get_product_list,

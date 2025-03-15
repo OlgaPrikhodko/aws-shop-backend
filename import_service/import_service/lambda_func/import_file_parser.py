@@ -1,10 +1,12 @@
 import io
 import csv
 import os
+import json
 import boto3
 
 
 s3 = boto3.client('s3')
+sqs = boto3.client('sqs', region_name=os.getenv("AWS_REGION"))
 
 
 def handler(event, _context):
@@ -13,13 +15,12 @@ def handler(event, _context):
     """
     bucket_name = os.environ['BUCKET_NAME']
 
+    queue_url = os.environ['QUEUE_URL']
+
     try:
         for record in event.get('Records', []):
             # Extract the object key (file name) from the event
             key = record['s3']['object']['key']
-            file_name = key.split('/')[-1]
-
-            print(f"Processing file {key}")
 
             # Get the object from s3
             response = s3.get_object(Bucket=bucket_name, Key=key)
@@ -31,22 +32,21 @@ def handler(event, _context):
             # Parse csv
             reader = csv.DictReader(csv_file)
 
-            print("File rows: ")
             for row in reader:
-                print(row)
+                print(json.dumps(row))
+                sqs.send_message(QueueUrl=queue_url,
+                                 MessageBody=json.dumps(row))
 
+            # Copy the object to the parsed folder
             copy_source = {'Bucket': bucket_name, 'Key': key}
             parsed_key = key.replace('uploaded/', 'parsed/')
 
-            # Copy the object to the parsed folder
             s3.copy_object(Bucket=bucket_name,
                            CopySource=copy_source, Key=parsed_key)
 
             # Delete the original object from the uploaded folder
             if key != 'uploaded/':
                 s3.delete_object(Bucket=bucket_name, Key=key)
-
-            print(f"File from uploaded moved to parsed folder.")
     except:
         print("Error processing file")
         raise
