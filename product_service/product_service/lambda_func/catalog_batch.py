@@ -23,15 +23,15 @@ def handler(event, _context):
                 }
 
         product_item = {
-            'id': {'S': record['id']},
+            'id': {'S': str(record['id'])},
             'title': {'S': record['title']},
             'description': {'S': record['description']},
-            'price': {'N': record['price']}
+            'price': {'N': str(record['price'])}
         }
 
         stock_item = {
-            'product_id': {'S': record['id']},
-            'count': {'N': record['count']}
+            'product_id': {'S': str(record['id'])},
+            'count': {'N': str(record['count'])}
         }
 
         # save to DynamoDB
