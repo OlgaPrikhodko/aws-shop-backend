@@ -23,11 +23,24 @@ class CatalogBatchProcess(Stack):
         event_source = lambda_event_sources.SqsEventSource(
             catalog_items_queue, batch_size=5)
 
+        # Subscription for all products
         create_product_topic = sns.Topic(
             self, "CreateProductTopic", topic_name="create_product_topic")
 
         create_product_topic.add_subscription(
             sns_subscriptions.EmailSubscription("ggg.poletaem@gmail.com"))
+
+        # Subscription for expensive products (price > 100)
+        create_product_topic.add_subscription(
+            sns_subscriptions.EmailSubscription(
+                "helga.prikhodko@gmail.com",
+                filter_policy={
+                    "price": sns.SubscriptionFilter.numeric_filter(
+                        greater_than=100
+                    )
+                }
+            )
+        )
 
         environment["SNS_TOPIC_ARN"] = create_product_topic.topic_arn
 
