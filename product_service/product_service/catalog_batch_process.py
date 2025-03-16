@@ -27,7 +27,8 @@ class CatalogBatchProcess(Stack):
         # Create SQS Queue for receiving product data
         catalog_items_queue = sqs.Queue(
             self,
-            "CatalogItemsQueue"
+            "CatalogItemsQueue",
+            queue_name='CatalogItemsQueue'
         )
 
         # Configure SQS as event source for Lambda

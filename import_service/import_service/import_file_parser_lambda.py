@@ -7,6 +7,8 @@ from aws_cdk import (
 )
 from constructs import Construct
 
+import boto3
+
 
 class FileParserLambda(Stack):
     """
@@ -15,7 +17,6 @@ class FileParserLambda(Stack):
     This stack sets up a Lambda function that processes files from a specified S3 bucket.
     It configures necessary IAM permissions for the Lambda to read, write, and delete objects
     from the bucket.
-import boto3
 
     Attributes:
         import_file_parser (lambda_.Function): Lambda function that handles file parsing
@@ -34,11 +35,18 @@ import boto3
         bucket = s3.Bucket.from_bucket_name(self, 'ImportBucket',
                                             bucket_name=bucket_name)
 
-        queue = sqs.Queue.from_queue_attributes(
-            self,
-            "CatalogItemsQueue",
-            queue_arn="arn:aws:sqs:eu-west-1:288761740770:ProductServiceStackCatalogBatchProcessF03-CatalogItemsQueueB3B6CE23-4hMqPokXval1",
-            queue_url="https://eu-west-1.queue.amazonaws.com/288761740770/ProductServiceStackCatalogBatchProcessF03-CatalogItemsQueueB3B6CE23-4hMqPokXval1"
+        sqs_client = boto3.client('sqs')
+        response = sqs_client.get_queue_url(
+            QueueName='CatalogItemsQueue'
+        )
+        queue_url = response['QueueUrl']
+        response = sqs_client.get_queue_attributes(
+            QueueUrl=queue_url,
+            AttributeNames=['QueueArn']
+        )
+        queue_arn = response['Attributes']['QueueArn']
+        queue = sqs.Queue.from_queue_arn(
+            self, "InstanceQueue", queue_arn=queue_arn
         )
 
         # Create Lambda function
@@ -49,7 +57,7 @@ import boto3
             handler='import_file_parser.handler',
             code=lambda_.Code.from_asset('import_service/lambda_func/'),
             environment={'BUCKET_NAME': bucket.bucket_name,
-                         "QUEUE_URL": queue.queue_url}
+                         "QUEUE_URL": queue_url}
         )
 
         # Grant permissions to the Lambda function:
