@@ -9,6 +9,15 @@ sns_client = boto3.client('sns')
 
 
 def handler(event, _context):
+    """
+    Handler for processing catalog items from SQS and
+     - create corresponding products in the products and stock table
+     - publish to SNS with filters.
+
+    Args:
+        event: SQS event containing product data
+        _context: Lambda context
+    """
     stock_table_name = os.environ['STOCK_TABLE_NAME']
     product_table_name = os.environ['PRODUCTS_TABLE_NAME']
     sns_topic_arn = os.environ['SNS_TOPIC_ARN']
@@ -74,7 +83,7 @@ def handler(event, _context):
                 'id': str(record_data['id']),
                 'title': record_data['title'],
                 'description': record_data['description'],
-                'price': record_data['price'],
+                'price': str(record_data['price']),
                 'count': record_data['count']
             })
 
@@ -82,22 +91,31 @@ def handler(event, _context):
             print(f"Error processing record: {str(e)}")
             continue
 
-    # Send SNS notification after processing all records
-    if products_for_sns:
-        sns_message = {
-            'default': json.dumps({
-                'message': 'New product added',
-                'products': products_for_sns
-            })
-        }
+    # Filter products(with price attribute)
+    for product in products_for_sns:
+        try:
+            sns_message = {
+                'default': json.dumps({
+                    'message': 'New product added',
+                    'product': product
+                })
+            }
 
-        response = sns_client.publish(
-            TopicArn=sns_topic_arn,
-            Message=json.dumps(sns_message),
-            MessageStructure='json'
-        )
-
-        print(f"Message sent to SNS topic: {response['MessageId']}")
+            response = sns_client.publish(
+                TopicArn=sns_topic_arn,
+                Message=json.dumps(sns_message),
+                MessageStructure='json',
+                MessageAttributes={
+                    'price': {
+                        'DataType': 'Number',
+                        'StringValue': str(float(product['price']))
+                    }
+                }
+            )
+            print(
+                f"Expensive product message sent: {response['MessageId']} for price {product['price']}")
+        except Exception as e:
+            print(f"Error publishing expensive product: {str(e)}")
 
     return {
         'statusCode': 200,

@@ -49,7 +49,7 @@ class CatalogBatchProcess(Stack):
                 "helga.prikhodko@gmail.com",
                 filter_policy={
                     "price": sns.SubscriptionFilter.numeric_filter(
-                        greater_than=100
+                        greater_than=30
                     )
                 }
             )
