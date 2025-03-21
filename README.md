@@ -27,7 +27,16 @@ Available endpoints:
 - GET `/products/{id}` - Retrieve specific product by ID
 - POST `/products` - Create new product
 
+### Lambda Functions
 
+#### catalogBatchProcess
+- Triggered by SQS events from catalogItemsQueue
+- Processes messages in batches of 5
+- Creates products in DynamoDB based on received messages
+- Publishes notifications to SNS topic after product creation
+- Environment variables required:
+  - SNS_TOPIC_ARN: ARN of createProductTopic
+  
 ## Import Service
 Base URL: https://hr83sjmjyj.execute-api.eu-west-1.amazonaws.com/prod
 
@@ -54,17 +63,66 @@ curl "https://hr83sjmjyj.execute-api.eu-west-1.amazonaws.com/prod/import?name=pr
   - price
   - count
 
+### Infrastructure (CDK Stack)
+
+#### SQS Configuration
+- Queue name: catalogItemsQueue
+- Batch size: 5 messages
+- Configured as event source for catalogBatchProcess lambda
+
+#### SNS Configuration
+- Topic name: createProductTopic
+- Email subscription for product creation notifications
+- Optional: Filter policy configuration for routing messages based on product attributes
+
+### IAM Permissions
+The following permissions are configured in the CDK stack:
+- catalogBatchProcess lambda permissions:
+  - SQS: ReceiveMessage, DeleteMessage
+  - SNS: Publish
+  - DynamoDB: Required permissions for product creation
+
 ### Import Process Flow:
-1. Request signed URL via GET `/import` endpoint
-2. Use received URL to upload CSV file to S3
-3. File will be placed in the 'uploaded' folder
+1. CSV files uploaded to S3 'uploaded/' directory
+2. importFileParser processes files and sends records to SQS
+3. catalogBatchProcess receives messages in batches
+4. New products are created in DynamoDB
+5. Notifications sent via SNS
+6. Subscribers receive emails based on filter policies (if configured)
 4. System will process the file and import products
 
-### Technical Details:
-- S3 Bucket Structure:
-  - uploaded/ - Initial upload location for CSV files
-- Lambda Functions:
-  - importProductsFile - Generates signed URLs for file upload
+
+### Lambda Functions
+
+### importProductsFile 
+- Generates signed URLs for file upload
+
+#### importFileParser
+- Processes CSV files uploaded to the S3 bucket
+- Reads records from CSV files and sends them to SQS queue (catalogItemsQueue)
+- Moves processed files from 'uploaded/' to 'parsed/' directory
+- Environment variables:
+  - BUCKET_NAME: S3 bucket name
+  - QUEUE_URL: SQS queue URL
+
+### Infrastructure (CDK Stack)
+
+#### SQS Configuration
+- Queue name: catalogItemsQueue
+- Batch size: 5 messages
+- Configured as event source for catalogBatchProcess lambda
+
+#### SNS Configuration
+- Topic name: createProductTopic
+- Email subscription for product creation notifications
+- Optional: Filter policy configuration for routing messages based on product attributes
+
+### IAM Permissions
+The following permissions are configured in the CDK stack:
+- catalogBatchProcess lambda permissions:
+  - SQS: ReceiveMessage, DeleteMessage
+  - SNS: Publish
+  - DynamoDB: Required permissions for product creation
 
 
 ## Frontend Shop App Link:
