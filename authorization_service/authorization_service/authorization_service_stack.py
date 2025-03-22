@@ -1,19 +1,30 @@
+import os
+import dotenv
+
 from aws_cdk import (
-    # Duration,
     Stack,
-    # aws_sqs as sqs,
+    aws_lambda as lambda_,
 )
 from constructs import Construct
+
 
 class AuthorizationServiceStack(Stack):
 
     def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
-        # The code that defines your stack goes here
+        dotenv.load_dotenv()
 
-        # example resource
-        # queue = sqs.Queue(
-        #     self, "AuthorizationServiceQueue",
-        #     visibility_timeout=Duration.seconds(300),
-        # )
+        login = 'OlgaPrikhodko'
+        SECRET_KEY = os.getenv(login)
+
+        lambda_.Function(
+            self, 'BasicAuthorizationLambda',
+            runtime=lambda_.Runtime.PYTHON_3_12,
+            handler='basic_authorizer.handler',
+            code=lambda_.Code.from_asset('lambda_func/'),
+            environment={
+                'login': SECRET_KEY
+            },
+            function_name='AuthFunction'
+        )
