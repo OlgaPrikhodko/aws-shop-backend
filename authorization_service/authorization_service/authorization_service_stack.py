@@ -22,7 +22,7 @@ class AuthorizationServiceStack(Stack):
             self, 'BasicAuthorizationLambda',
             runtime=lambda_.Runtime.PYTHON_3_12,
             handler='basic_authorizer.handler',
-            code=lambda_.Code.from_asset('lambda_func/'),
+            code=lambda_.Code.from_asset('authorization_service/lambda_func/'),
             environment={
                 'login': SECRET_KEY
             },
