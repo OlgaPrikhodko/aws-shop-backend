@@ -22,6 +22,9 @@ class ApiGateway(Stack):
                  import_products_fn: lambda_.Function, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
+        basic_authorizer_lambda = lambda_.Function.from_function_name(
+            self, "authFunction", "AuthFunction")
+
         # Create REST API
         api = apigateway.RestApi(
             self, 'ImportProductsApi',
@@ -29,14 +32,20 @@ class ApiGateway(Stack):
             description='API Gateway for import service'
         )
 
-        # Create 'import' resource
-        # This adds a new resource path '/import' to the API
+        # Create Lambda authorizer
+        authorizer = apigateway.TokenAuthorizer(
+            self, 'BasicAuthorizer', handler=basic_authorizer_lambda,
+            identity_source='method.request.header.Authorization'
+        )
+
+        # Create '/import' resource endpoint in API Gateway
+        # This path will be used for importing products via signed S3 URLs
         resource = api.root.add_resource('import')
 
-        # Add GET method to the resource
-        # This creates an endpoint: GET /import
+        # Configure GET /import endpoint with Lambda integration and Basic Auth
         resource.add_method(
             'GET',
-            apigateway.LambdaIntegration(
-                import_products_fn)
+            apigateway.LambdaIntegration(import_products_fn),
+            authorization_type=apigateway.AuthorizationType.CUSTOM,
+            authorizer=authorizer  # Auth Lambda authorizer
         )
