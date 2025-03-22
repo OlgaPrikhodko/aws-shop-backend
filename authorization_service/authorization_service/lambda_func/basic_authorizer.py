@@ -6,7 +6,7 @@ def handler(event, _context):
     print(event)
 
     # Check if Authorization header exists
-    auth_header = event['AuthorizationToken']
+    auth_header = event['authorizationToken']
 
     if not auth_header:
         return {
