@@ -24,7 +24,7 @@ class AuthorizationServiceStack(Stack):
             handler='basic_authorizer.handler',
             code=lambda_.Code.from_asset('authorization_service/lambda_func/'),
             environment={
-                'login': SECRET_KEY
+                login: SECRET_KEY
             },
             function_name='AuthFunction'
         )
