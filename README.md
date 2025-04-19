@@ -13,9 +13,9 @@ The application is built using a microservices architecture with the following c
 ### Services
 
 - **Product Service**: Manages product catalog (Lambda + API Gateway)
-<!-- - **Authorization Service**: Handles user authentication and authorization
 - **Import Service**: Manages product import operations
-- **Cart Service**: Handles shopping cart operations -->
+- **Authorization Service**: Handles user authentication and authorization
+<-- **Cart Service**: Handles shopping cart operations -->
 
 ## API Endpoints
 
@@ -41,18 +41,29 @@ Available endpoints:
 Base URL: https://hr83sjmjyj.execute-api.eu-west-1.amazonaws.com/prod
 
 ### Available Endpoints:
-- GET `/import` - Generate signed URL for CSV file upload
+GET `/import` - Generate signed URL for CSV file upload
+  - Authentication: Basic Auth required
+  - Headers:
+    - `Authorization: Basic {base64_encoded_token}`
+      - Token format: `{github_login}:TEST_PASSWORD` (base64 encoded)
   - Query Parameters:
     - `name` (required): Name of the CSV file to upload
   - Response: Signed URL as string
   - Example: `/import?name=products.csv`
 
-### Usage Example:
-```
-# Get signed URL for file upload
-curl "https://hr83sjmjyj.execute-api.eu-west-1.amazonaws.com/prod/import?name=products.csv"
+### Authentication:
+The Import Service requires Basic Authentication:
+- Format: `Authorization: Basic {base64_encoded_token}`
+- Token is base64 encoded string of `{github_login}:TEST_PASSWORD`
+- Token must be included in request headers
 
-```
+### Usage Example:
+```bash
+# With authentication header
+curl -H "Authorization: Basic {your_base64_encoded_token}" \
+     "https://hr83sjmjyj.execute-api.eu-west-1.amazonaws.com/prod/import?name=products.csv"
+
+
 
 ### CSV File Requirements:
 - Format: CSV file with product data
