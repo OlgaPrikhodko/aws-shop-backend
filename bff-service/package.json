@@ -2,7 +2,7 @@
   "name": "bff-service",
   "version": "1.0.0",
   "scripts": {
-    "start": "ts-node src/server.ts",
+    "start": "node dist/server.js",
     "dev": "ts-node src/server.ts",
     "build": "tsc",
     "start:prod": "node dist/server.js",
@@ -20,5 +20,8 @@
     "@types/node": "^20.9.0",
     "typescript": "^5.2.2",
     "ts-node": "^10.9.1"
+  },
+  "engines": {
+    "node": "18.0.0"
   }
 }
